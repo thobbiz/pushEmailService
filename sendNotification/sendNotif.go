@@ -3,7 +3,6 @@ package sendNotification
 import (
 	"context"
 	"fmt"
-	"push_service/api"
 	"push_service/models"
 
 	"firebase.google.com/go/v4/messaging"
@@ -11,13 +10,16 @@ import (
 
 func SendNotification(ctx context.Context, c *models.Consumer, notifPushRequest models.NotifPushRequest) error {
 
-	user, err := api.FetchUser(notifPushRequest.UserID)
-	if err != nil {
-		return err
-	}
+	// user, err := api.FetchUser(notifPushRequest.UserID)
+	// if err != nil {
+	// 	log.Println("couldn't fetch user ")
+	// }
+
+	name := notifPushRequest.Variables.Name
+	token := "e2SUbDFyiaLMoIjmSe6bDl:APA91bEYcdOP4yPHLdZdS9ZdHz0wvfZRDZVqXsV1nkLQzm5FmUfJ8yUOKyJYvF8ZTq5wgA4jc800KEUcbQjZRVlMDHVwC8cSX574yZyDqVt5iEVegavJ-YU"
 
 	dataPayload := map[string]string{
-		"name":          user.Name,
+		"name":          name,
 		"link":          notifPushRequest.Variables.Link,
 		"template_code": notifPushRequest.TemplateID,
 	}
@@ -28,10 +30,10 @@ func SendNotification(ctx context.Context, c *models.Consumer, notifPushRequest 
 			Body:  fmt.Sprintf("%s", notifPushRequest.Variables.Link),
 		},
 		Data:  dataPayload,
-		Token: user.PushToken,
+		Token: token,
 	}
 
-	if err = sendMessage(ctx, c, message); err != nil {
+	if err := sendMessage(ctx, c, message); err != nil {
 		return err
 	}
 
