@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log"
+	"os"
 
 	"push_service/models"
 	sendNotification "push_service/sendNotification"
@@ -174,7 +175,6 @@ func NewWorker(c *models.Consumer, id int) {
 					headerRetryCount = count
 				}
 			}
-
 			log.Printf("Worker %d Received a message (Attempt %d)", id, headerRetryCount)
 
 			var notif models.NotifPushRequest
@@ -187,9 +187,8 @@ func NewWorker(c *models.Consumer, id int) {
 			}
 
 			err = sendNotification.SendNotification(context.Background(), c, notif)
-
 			if err != nil {
-				log.Println("Worker failed")
+				log.Printf("Worker failed: %v", err)
 				if headerRetryCount < models.MaxRetries {
 					log.Println("Started retrying")
 					d.Ack(false)
@@ -229,7 +228,9 @@ func NewWorker(c *models.Consumer, id int) {
 
 func setUpFirebaseClient(c *models.Consumer) {
 	ctx := context.Background()
-	opt := option.WithCredentialsFile("./serviceAccountKey.json")
+
+	serviceAccountJSON := os.Getenv("GOOGLE_SERVICE_ACCOUNT")
+	opt := option.WithCredentialsJSON([]byte(serviceAccountJSON))
 
 	config := firebase.Config{
 		ProjectID: "pushservice-8f271",
