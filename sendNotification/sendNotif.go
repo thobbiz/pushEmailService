@@ -21,7 +21,7 @@ func SendNotification(ctx context.Context, c *models.Consumer, notifMessageReque
 			Title: title,
 			Body:  body,
 		},
-		Data:  nil,
+		Data:  convertMetaToStringMap(notifMessageRequest.Variables),
 		Token: token,
 	}
 
@@ -40,6 +40,18 @@ func sendMessage(ctx context.Context, c *models.Consumer, message *messaging.Mes
 
 	fmt.Printf("Successfully sent message")
 	return nil
+}
+
+func convertMetaToStringMap(meta map[string]any) map[string]string {
+	if meta == nil {
+		return nil
+	}
+
+	result := make(map[string]string)
+	for key, value := range meta {
+		result[key] = fmt.Sprintf("%v", value)
+	}
+	return result
 }
 
 func resolveNotificationContent(req models.NotifMessageRequest) (token, title, body string, err error) {

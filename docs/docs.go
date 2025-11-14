@@ -126,22 +126,7 @@ const docTemplate = `{
             }
         },
         "models.NotifMessageRequest": {
-            "type": "object",
-            "properties": {
-                "body": {
-                    "type": "string"
-                },
-                "push_token": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "user1ab2c"
-                }
-            }
+            "type": "object"
         }
     }
 }`

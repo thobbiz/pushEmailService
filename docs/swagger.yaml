@@ -15,16 +15,6 @@ definitions:
         type: integer
     type: object
   models.NotifMessageRequest:
-    properties:
-      body:
-        type: string
-      push_token:
-        type: string
-      title:
-        type: string
-      user_id:
-        example: user1ab2c
-        type: string
     type: object
 info:
   contact:

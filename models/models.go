@@ -80,8 +80,10 @@ type Preferences struct {
 }
 
 type NotifMessageRequest struct {
-	UserID    string  `json:"user_id" example:"user1ab2c"`
-	PushToken *string `json:"push_token"`
-	Title     *string `json:"title"`
-	Body      *string `json:"body"`
+	UserID    string         `json:"user_id" example:"29293-2828"`
+	Template  string         `json:"template" example:"welcome_email"`
+	Variables map[string]any `json:"variables" swaggertype:"object" example:"name:John Doe"`
+	PushToken *string        `json:"push_token"`
+	Title     *string        `json:"title"`
+	Body      *string        `json:"body"`
 }
