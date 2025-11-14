@@ -2,15 +2,44 @@ definitions:
   models.ConsumerMetrics:
     properties:
       messages_failed:
+        description: Total messages that failed processing
         type: integer
       messages_processed:
+        description: Total messages consumed from the queue
         type: integer
       messages_retried:
+        description: Total messages that were retried
         type: integer
       messages_succeeded:
+        description: Total messages successfully processed
         type: integer
     type: object
   models.NotifPushRequest:
+    properties:
+      notification_type:
+        allOf:
+        - $ref: '#/definitions/models.NotificationType'
+        description: The type of notification to send
+        enum:
+        - push
+        - email
+        example: push
+      request_id:
+        description: A unique ID for tracking this request
+        example: req_abc123
+        type: string
+      template_code:
+        description: The code/ID of the template to use
+        example: welcome_template
+        type: string
+      user_id:
+        description: The unique identifier for the user
+        example: user1ab2c
+        type: string
+      variables:
+        allOf:
+        - $ref: '#/definitions/models.UserData'
+        description: The dynamic data to inject into the template
     type: object
   models.NotificationType:
     enum:
@@ -20,6 +49,18 @@ definitions:
     x-enum-varnames:
     - Email
     - Push
+  models.UserData:
+    properties:
+      link:
+        description: A relevant URL for the notification (e.g., verification link)
+        type: string
+      meta:
+        description: Extra metadata for template substitution
+        type: object
+      name:
+        description: User's full name
+        type: string
+    type: object
 info:
   contact:
     email: odelolatojumi@gmail.com
@@ -52,7 +93,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Sends a push notification with input payload to RabbitMQ queue
+      description: Accepts a push notification payload and sends it to the RabbitMQ
+        queue
       parameters:
       - description: Notification request payload
         in: body
@@ -81,7 +123,7 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Sends Notification to web user
+      summary: Queues a push notification
       tags:
       - notifications
 swagger: "2.0"

@@ -2,8 +2,7 @@ package main
 
 import (
 	// "context"
-	"database/sql"
-	"fmt"
+
 	"log"
 	"os"
 	"push_service/api"
@@ -97,60 +96,3 @@ func main() {
 	log.Println("API Starting API server on :8080")
 	router.Run(":8080")
 }
-
-func connectPostgreSQL() {
-	// Construct the connection string (DSN)
-	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=require",
-		os.Getenv("DATABASE_HOST"),
-		os.Getenv("DATABASE_PORT"),
-		os.Getenv("DATABASE_USERNAME"),
-		os.Getenv("DATABASE_PASSWORD"),
-		os.Getenv("DATABASE_NAME"),
-	)
-
-	// Open the connection
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		log.Printf("Failed to open PostgreSQL connection: %v\n", err)
-		return
-	}
-	defer db.Close()
-
-	// Ping the database to verify the connection
-	err = db.Ping()
-	if err != nil {
-		log.Printf("Failed to ping PostgreSQL: %v\n", err)
-		return
-	}
-
-	log.Println("✅ Successfully connected to PostgreSQL (Aiven)!")
-}
-
-// connectUpstashRedis connects to your Upstash Redis REST API
-// func connectUpstashRedis() {
-// 	client := upstash.NewClient(
-// 		os.Getenv("UPSTASH_REDIS_REST_URL"),
-// 		os.Getenv("UPSTASH_REDIS_REST_TOKEN"),
-// 	)
-
-// 	// Ping the server
-// 	ctx := context.Background()
-// 	res, err := client.Ping(ctx)
-// 	if err != nil {
-// 		log.Printf("Failed to ping Upstash Redis: %v\n", err)
-// 		return
-// 	}
-
-// 	log.Printf("✅ Successfully connected to Upstash Redis! (Ping response: %s)\n", res)
-// }
-
-// 	// Dial the server
-// 	conn, err := amqp.Dial(amqpURL)
-// 	if err != nil {
-// 		log.Printf("Failed to connect to RabbitMQ: %v\n", err)
-// 		return
-// 	}
-// 	defer conn.Close()
-
-// 	log.Println("✅ Successfully connected to RabbitMQ (CloudAMQP)!")
-// }

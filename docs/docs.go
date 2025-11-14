@@ -49,7 +49,7 @@ const docTemplate = `{
         },
         "/notification": {
             "post": {
-                "description": "Sends a push notification with input payload to RabbitMQ queue",
+                "description": "Accepts a push notification payload and sends it to the RabbitMQ queue",
                 "consumes": [
                     "application/json"
                 ],
@@ -59,7 +59,7 @@ const docTemplate = `{
                 "tags": [
                     "notifications"
                 ],
-                "summary": "Sends Notification to web user",
+                "summary": "Queues a push notification",
                 "parameters": [
                     {
                         "description": "Notification request payload",
@@ -108,21 +108,63 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "messages_failed": {
+                    "description": "Total messages that failed processing",
                     "type": "integer"
                 },
                 "messages_processed": {
+                    "description": "Total messages consumed from the queue",
                     "type": "integer"
                 },
                 "messages_retried": {
+                    "description": "Total messages that were retried",
                     "type": "integer"
                 },
                 "messages_succeeded": {
+                    "description": "Total messages successfully processed",
                     "type": "integer"
                 }
             }
         },
         "models.NotifPushRequest": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+                "notification_type": {
+                    "description": "The type of notification to send",
+                    "enum": [
+                        "push",
+                        "email"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.NotificationType"
+                        }
+                    ],
+                    "example": "push"
+                },
+                "request_id": {
+                    "description": "A unique ID for tracking this request",
+                    "type": "string",
+                    "example": "req_abc123"
+                },
+                "template_code": {
+                    "description": "The code/ID of the template to use",
+                    "type": "string",
+                    "example": "welcome_template"
+                },
+                "user_id": {
+                    "description": "The unique identifier for the user",
+                    "type": "string",
+                    "example": "user1ab2c"
+                },
+                "variables": {
+                    "description": "The dynamic data to inject into the template",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.UserData"
+                        }
+                    ]
+                }
+            }
         },
         "models.NotificationType": {
             "type": "string",
@@ -134,6 +176,23 @@ const docTemplate = `{
                 "Email",
                 "Push"
             ]
+        },
+        "models.UserData": {
+            "type": "object",
+            "properties": {
+                "link": {
+                    "description": "A relevant URL for the notification (e.g., verification link)",
+                    "type": "string"
+                },
+                "meta": {
+                    "description": "Extra metadata for template substitution",
+                    "type": "object"
+                },
+                "name": {
+                    "description": "User's full name",
+                    "type": "string"
+                }
+            }
         }
     }
 }`

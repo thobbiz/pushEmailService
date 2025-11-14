@@ -23,16 +23,16 @@ const (
 	ValidationFailed    = "Validation failed"
 )
 
-// SendNotification godoc
-// @Summary      Sends Notification to web user
-// @Description  Sends a push notification with input payload to RabbitMQ queue
+// NotificationHandler godoc
+// @Summary      Queues a push notification
+// @Description  Accepts a push notification payload and sends it to the RabbitMQ queue
 // @Tags         notifications
 // @Accept       json
 // @Produce      json
 // @Param        request  body      models.NotifPushRequest  true  "Notification request payload"
-// @Success      202      {object}  map[string]string  "status: queued, request_id: string"
-// @Failure      400      {object}  map[string]string  "error: validation failed or invalid notification type"
-// @Failure      500      {object}  map[string]string  "error: internal server error"
+// @Success      202      {object}  map[string]string        "status: queued, request_id: string"
+// @Failure      400      {object}  map[string]string        "error: validation failed or invalid notification type"
+// @Failure      500      {object}  map[string]string        "error: internal server error"
 // @Router       /notification [post]
 func NotificationHandler(p *models.Publisher, ctx *gin.Context) {
 	var req models.NotifPushRequest
