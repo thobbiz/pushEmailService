@@ -8,6 +8,7 @@ import (
 	"os"
 	"push_service/api"
 	"push_service/consumer"
+	_ "push_service/docs"
 	"push_service/models"
 	"push_service/util"
 
@@ -15,7 +16,22 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib" // PostgreSQL driver
 	"github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go" // RabbitMQ client
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
+
+// @title           Push Email MicroService
+// @version         1.0
+// @description     A microservice that pushes notification to the designated web user
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  odelolatojumi@gmail.com
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
 func main() {
 	err := godotenv.Load(".env")
@@ -55,10 +71,25 @@ func main() {
 		Channel: pubChannel,
 	}
 
+	c := models.Consumer{
+		QueueName:     "",
+		RetryQueue:    "retry_notif",
+		PrefetchCount: 1,
+		WorkerCount:   5,
+	}
+
 	log.Println("[Main] Starting background consumer workers...")
-	go consumer.StartConsumer(conChannel)
+	go consumer.StartConsumer(conChannel, &c)
 
 	router := gin.Default()
+
+	// Swagger route
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	router.GET("/health", func(ctx *gin.Context) {
+		api.HealthHandler(&c, ctx)
+	})
+
 	router.POST("/notification", func(ctx *gin.Context) {
 		api.NotificationHandler(&p, ctx)
 	})
@@ -112,15 +143,6 @@ func connectPostgreSQL() {
 
 // 	log.Printf("✅ Successfully connected to Upstash Redis! (Ping response: %s)\n", res)
 // }
-
-// // connectRabbitMQ connects to your CloudAMQP RabbitMQ instance
-// func connectRabbitMQ() {
-// 	// Get the connection URL from the environment
-// 	amqpURL := os.Getenv("RABBITMQ_URL")
-// 	if amqpURL == "" {
-// 		log.Println("RABBITMQ_URL is not set")
-// 		return
-// 	}
 
 // 	// Dial the server
 // 	conn, err := amqp.Dial(amqpURL)

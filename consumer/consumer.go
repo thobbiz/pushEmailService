@@ -16,24 +16,17 @@ import (
 	"google.golang.org/api/option"
 )
 
-func StartConsumer(ch *amqp.Channel) {
+func StartConsumer(ch *amqp.Channel, c *models.Consumer) {
 	err := godotenv.Load(".env")
 	if err != nil {
 		log.Println("Note: .env file not found, reading from system environment")
 	}
 
-	c := models.Consumer{
-		QueueName:     "",
-		RetryQueue:    "retry_notif",
-		PrefetchCount: 1,
-		WorkerCount:   5,
-	}
-
-	SetUp(&c, ch)
+	SetUp(c, ch)
 
 	for r := 0; r < c.WorkerCount; r++ {
 		if c.Channel != nil {
-			go NewWorker(&c, r)
+			go NewWorker(c, r)
 		} else {
 			log.Fatal("couldn't launch workers")
 		}
@@ -168,6 +161,7 @@ func NewWorker(c *models.Consumer, id int) {
 
 	go func() {
 		for d := range msgs {
+			c.ConsumerMetrics.MessagesProcessed += 1
 
 			var headerRetryCount int64 = 1
 			if val, ok := d.Headers["x-retry-count"]; ok {
@@ -181,7 +175,6 @@ func NewWorker(c *models.Consumer, id int) {
 			err := json.Unmarshal(d.Body, &notif)
 			if err != nil {
 				log.Printf("Worker %d FAILED to unmarshal JSON: %v. Sending to DLX.", id, err)
-
 				d.Nack(false, false)
 				continue
 			}
@@ -206,6 +199,7 @@ func NewWorker(c *models.Consumer, id int) {
 							},
 						},
 					)
+					c.ConsumerMetrics.MessagesRetried += 1
 					log.Println("Finished publishing retry")
 					if err != nil {
 						log.Printf("Error publishing to retry exchange: %s", err)
@@ -213,12 +207,14 @@ func NewWorker(c *models.Consumer, id int) {
 				} else {
 					log.Printf("Max retries (%d) exceeded. Sending to DLX.", models.MaxRetries)
 					d.Nack(false, false)
+					c.ConsumerMetrics.MessagesFailed += 1
 					log.Printf("Sent to DLX successfully")
 				}
 			} else {
 				if ackErr := d.Ack(false); ackErr != nil {
 					log.Printf(" [Worker %d] Failed to ack: %v", id, ackErr)
 				} else {
+					c.ConsumerMetrics.MessagesSucceeded += 1
 					log.Printf(" [Worker %d] Message acknowledged", id)
 				}
 			}

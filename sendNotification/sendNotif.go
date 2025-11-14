@@ -3,20 +3,22 @@ package sendNotification
 import (
 	"context"
 	"fmt"
+	"log"
+	"push_service/api"
 	"push_service/models"
 
 	"firebase.google.com/go/v4/messaging"
 )
 
 func SendNotification(ctx context.Context, c *models.Consumer, notifPushRequest models.NotifPushRequest) error {
+	user, err := api.FetchUser(notifPushRequest.UserID)
+	if err != nil {
+		log.Println("couldn't fetch user ")
+		return fmt.Errorf("couldn't fetch user: %v", err)
+	}
 
-	// user, err := api.FetchUser(notifPushRequest.UserID)
-	// if err != nil {
-	// 	log.Println("couldn't fetch user ")
-	// }
-
-	name := notifPushRequest.Variables.Name
-	token := "e2SUbDFyiaLMoIjmSe6bDl:APA91bEYcdOP4yPHLdZdS9ZdHz0wvfZRDZVqXsV1nkLQzm5FmUfJ8yUOKyJYvF8ZTq5wgA4jc800KEUcbQjZRVlMDHVwC8cSX574yZyDqVt5iEVegavJ-YU"
+	name := user.Name
+	token := user.PushToken
 
 	dataPayload := map[string]string{
 		"name":          name,

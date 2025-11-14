@@ -1,0 +1,87 @@
+definitions:
+  models.ConsumerMetrics:
+    properties:
+      messages_failed:
+        type: integer
+      messages_processed:
+        type: integer
+      messages_retried:
+        type: integer
+      messages_succeeded:
+        type: integer
+    type: object
+  models.NotifPushRequest:
+    type: object
+  models.NotificationType:
+    enum:
+    - email
+    - push
+    type: string
+    x-enum-varnames:
+    - Email
+    - Push
+info:
+  contact:
+    email: odelolatojumi@gmail.com
+    name: API Support
+    url: http://www.swagger.io/support
+  description: A microservice that pushes notification to the designated web user
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Push Email MicroService
+  version: "1.0"
+paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Gets message stats for the service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service metrics
+          schema:
+            $ref: '#/definitions/models.ConsumerMetrics'
+      summary: Get service metrics
+      tags:
+      - health
+  /notification:
+    post:
+      consumes:
+      - application/json
+      description: Sends a push notification with input payload to RabbitMQ queue
+      parameters:
+      - description: Notification request payload
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/models.NotifPushRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: 'status: queued, request_id: string'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: 'error: validation failed or invalid notification type'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: 'error: internal server error'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Sends Notification to web user
+      tags:
+      - notifications
+swagger: "2.0"

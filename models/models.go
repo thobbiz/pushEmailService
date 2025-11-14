@@ -33,6 +33,8 @@ type Consumer struct {
 	QueueName  string
 	RetryQueue string
 
+	ConsumerMetrics ConsumerMetrics
+
 	PrefetchCount int
 	WorkerCount   int
 	RetryCount    int64
@@ -41,25 +43,26 @@ type Consumer struct {
 }
 
 type ConsumerMetrics struct {
-	messagesProcessed int
-	messagesSucceeded int
-	messagesFailed    int
-	messagesRetried   int
+	MessagesProcessed int `json:"messages_processed"`
+	MessagesSucceeded int `json:"messages_succeeded"`
+	MessagesFailed    int `json:"messages_failed"`
+	MessagesRetried   int `json:"messages_retried"`
 }
 
 // UserData holds user-specific information for the notification.
 type UserData struct {
-	Name string         `json:"name"`
-	Link string         `json:"link"`
-	Meta map[string]any `json:"meta,omitempty"`
+	Name string         `json:"name" example:"John Doe"`
+	Link string         `json:"link" example:"https://example.com/verify"`
+	Meta map[string]any `json:"meta,omitempty" swaggertype:"object" example:"key1:value1,key2:value2"`
 }
 
+// NotifPushRequest represents the request body for sending notifications
 type NotifPushRequest struct {
-	NotificationType NotificationType `json:"notification_type"`
-	UserID           string           `json:"user_id"`
-	TemplateID       string           `json:"template_code"`
+	NotificationType NotificationType `json:"notification_type" example:"push" enums:"push,email"`
+	UserID           string           `json:"user_id" example:"user123"`
+	TemplateID       string           `json:"template_code" example:"welcome_template"`
 	Variables        UserData         `json:"variables"`
-	RequestId        string           `json:"request_id"`
+	RequestId        string           `json:"request_id" example:"req_abc123"`
 }
 
 type User struct {
