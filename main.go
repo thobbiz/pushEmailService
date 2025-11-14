@@ -71,7 +71,7 @@ func main() {
 	}
 
 	c := models.Consumer{
-		QueueName:     "",
+		QueueName:     models.PushQueueName,
 		RetryQueue:    "retry_notif",
 		PrefetchCount: 1,
 		WorkerCount:   5,

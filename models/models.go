@@ -14,6 +14,7 @@ const (
 	RetryQueueName                        = "retry-notifs_queue"
 	RetryQueueRoutingKey                  = "retried-messages"
 	RoutingKey                            = "notifs"
+	PushQueueName                         = "push.queue"
 	ExName                                = "push_notifs"
 	DlqRoutingKey                         = "failed-messages"
 	DlxName                               = "push_notifs_dlx"

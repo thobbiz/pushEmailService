@@ -70,19 +70,18 @@ func SetUp(c *models.Consumer, ch *amqp.Channel) {
 		"x-dead-letter-routing-key": models.DlqRoutingKey,
 	}
 
-	q, err := ch.QueueDeclare(
-		"",    // name
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		args,  // arguments
+	_, err = ch.QueueDeclare(
+		c.QueueName, // name
+		true,        // durable
+		false,       // auto-deleted
+		false,       // exclusive
+		false,       // no-wait
+		args,        // arguments
 	)
 	util.FailOnError(err, "Failed to declare main queue")
-	c.QueueName = q.Name
 
 	err = ch.QueueBind(
-		q.Name,            // queue name
+		c.QueueName,       // queue name
 		models.RoutingKey, // routing key
 		models.ExName,     // exchange
 		false,
