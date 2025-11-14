@@ -152,7 +152,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Push Email MicroService",
+	Title:            "Push Notification MicroService",
 	Description:      "A microservice that pushes notification to the designated web user",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

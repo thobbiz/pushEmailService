@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "A microservice that pushes notification to the designated web user",
-        "title": "Push Email MicroService",
+        "title": "Push Notification MicroService",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
