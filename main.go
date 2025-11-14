@@ -83,7 +83,7 @@ func main() {
 	router := gin.Default()
 
 	// Swagger route
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.GET("/docs", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.GET("/health", func(ctx *gin.Context) {
 		api.HealthHandler(&c, ctx)
