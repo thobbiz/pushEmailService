@@ -29,13 +29,13 @@ const (
 // @Tags         notifications
 // @Accept       json
 // @Produce      json
-// @Param        request  body      models.NotifPushRequest  true  "Notification request payload"
+// @Param        request  body      models.NotifMessageRequest  true  "Notification request payload"
 // @Success      202      {object}  map[string]string        "status: queued, request_id: string"
 // @Failure      400      {object}  map[string]string        "error: validation failed or invalid notification type"
 // @Failure      500      {object}  map[string]string        "error: internal server error"
 // @Router       /notification [post]
 func NotificationHandler(p *models.Publisher, ctx *gin.Context) {
-	var req models.NotifPushRequest
+	var req models.NotifMessageRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Println(util.ErrorResponse(err))
 		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(errors.New(ValidationFailed)))
@@ -46,12 +46,6 @@ func NotificationHandler(p *models.Publisher, ctx *gin.Context) {
 	if err != nil {
 		log.Printf("Error marshaling JSON: %v", err)
 		ctx.JSON(http.StatusInternalServerError, util.ErrorResponse(errors.New("Failed to process request")))
-		return
-	}
-
-	if req.NotificationType != "push" {
-		log.Printf("Invalid notification type: %s. This handler only accepts push notifications.", req.NotificationType)
-		ctx.JSON(http.StatusBadRequest, util.ErrorResponse(errors.New("Invalid notification_type, expected push")))
 		return
 	}
 
@@ -71,36 +65,89 @@ func NotificationHandler(p *models.Publisher, ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, util.ErrorResponse(errors.New("Failed to queue notification")))
 		return
 	}
-	log.Printf(" [x] Sent %s\n", body)
+	log.Printf("Received Message")
 
-	ctx.JSON(http.StatusAccepted, gin.H{"status": "queued", "request_id": req.RequestId})
+	ctx.JSON(http.StatusAccepted, gin.H{"status": "queued", "request_id": req.UserID})
 }
 
 func FetchUser(userId string) (*models.User, error) {
-	API_NAME := "https://user-service-giq0.onrender.com"
+	API_NAME := "https://user-service-yci9.onrender.com/api"
 	url := fmt.Sprintf("%s/v1/users/%s", API_NAME, userId)
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MWVhN2YzOS04YTU2LTRkZTYtOTAzMy04MDI5ODRhYzhkZmMiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzYzMTI3NTgzLCJleHAiOjE3NjMxMzExODN9.CLvnEoZN5gzTdZ3YZIs1YUZrWRWxzVbCIb01Cn4RdYE"
+
 	client := &http.Client{
-		Timeout: 10 * time.Second,
+		Timeout: 40 * time.Second,
 	}
 
-	resp, err := client.Get(url)
-	if err != nil || (resp.StatusCode != http.StatusOK) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not make new request: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	resp, err := client.Do(req)
+	if err != nil {
 		return nil, fmt.Errorf("could not fetch data from User service [%s]: %w", API_NAME, err)
 	}
-	log.Printf("User service responded: %d", resp.StatusCode)
+
 	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("user service responded with status %d: %s", resp.StatusCode, string(body))
+	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	var user models.User
+	var user models.UserResponses
 	err = json.Unmarshal(body, &user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse user JSON: %w", err)
 	}
 
 	log.Printf("user is %v", fmt.Sprintf("%v", user))
-	return &user, nil
+	return &user.Data, nil
+}
+
+func FetchTemplate(template_name string) (*models.TemplateResponse, error) {
+	API_NAME := "https://template-service-mza0.onrender.com"
+	url := fmt.Sprintf("%s/templates/name/%s", API_NAME, template_name)
+
+	client := &http.Client{
+		Timeout: 40 * time.Second,
+	}
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("could not make new request: %w", err)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch data from Template service [%s]: %w", API_NAME, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("template service responded with status %d: %s", resp.StatusCode, string(body))
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	var template models.TemplateResponse
+	err = json.Unmarshal(body, &template)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template JSON: %w", err)
+	}
+
+	log.Printf("template was retrieved successfully")
+	return &template, nil
 }

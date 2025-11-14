@@ -10,28 +10,18 @@ import (
 	"firebase.google.com/go/v4/messaging"
 )
 
-func SendNotification(ctx context.Context, c *models.Consumer, notifPushRequest models.NotifPushRequest) error {
-	user, err := api.FetchUser(notifPushRequest.UserID)
+func SendNotification(ctx context.Context, c *models.Consumer, notifMessageRequest models.NotifMessageRequest) error {
+	token, title, body, err := resolveNotificationContent(notifMessageRequest)
 	if err != nil {
-		log.Println("couldn't fetch user ")
-		return fmt.Errorf("couldn't fetch user: %v", err)
-	}
-
-	name := user.Name
-	token := user.PushToken
-
-	dataPayload := map[string]string{
-		"name":          name,
-		"link":          notifPushRequest.Variables.Link,
-		"template_code": notifPushRequest.TemplateID,
+		return fmt.Errorf("could not resolve notification content: %w", err)
 	}
 
 	message := &messaging.Message{
 		Notification: &messaging.Notification{
-			Title: fmt.Sprintf("Hello, %s!", notifPushRequest.Variables.Name),
-			Body:  fmt.Sprintf("%s", notifPushRequest.Variables.Link),
+			Title: title,
+			Body:  body,
 		},
-		Data:  dataPayload,
+		Data:  nil,
 		Token: token,
 	}
 
@@ -43,11 +33,48 @@ func SendNotification(ctx context.Context, c *models.Consumer, notifPushRequest 
 }
 
 func sendMessage(ctx context.Context, c *models.Consumer, message *messaging.Message) error {
-	response, err := c.Client.Send(ctx, message)
+	_, err := c.Client.Send(ctx, message)
 	if err != nil {
-		return fmt.Errorf("error sending message: %v\n", err)
+		return fmt.Errorf("Error sending message: %v\n", err)
 	}
 
-	fmt.Printf("Successfully sent message: %s\n", response)
+	fmt.Printf("Successfully sent message")
 	return nil
+}
+
+func resolveNotificationContent(req models.NotifMessageRequest) (token, title, body string, err error) {
+	if req.PushToken == nil || *req.PushToken == "" {
+		user, err := api.FetchUser(req.UserID)
+		if err != nil {
+			log.Println("Couldn't fetch user ")
+			return "", "", "", fmt.Errorf("Couldn't fetch user: %v", err)
+		}
+		token = user.PushToken
+	} else {
+		token = *req.PushToken
+	}
+
+	var template *models.TemplateResponse
+
+	if req.Body == nil || req.Title == nil || *req.Body == "" || *req.Title == "" {
+		template, err = api.FetchTemplate("welcome_push")
+		if err != nil {
+			log.Println("Couldn't fetch template ")
+			return "", "", "", fmt.Errorf("Couldn't fetch template: %v", err)
+		}
+	}
+
+	if req.Body == nil {
+		body = template.Body
+	} else {
+		body = *req.Body
+	}
+
+	if req.Title == nil {
+		title = template.Name
+	} else {
+		title = *req.Title
+	}
+
+	return token, title, body, nil
 }

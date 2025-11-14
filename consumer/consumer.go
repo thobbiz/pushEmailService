@@ -11,28 +11,22 @@ import (
 	"push_service/util"
 
 	firebase "firebase.google.com/go/v4"
-	"github.com/joho/godotenv"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/api/option"
 )
 
 func StartConsumer(ch *amqp.Channel, c *models.Consumer) {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Println("Note: .env file not found, reading from system environment")
-	}
-
 	SetUp(c, ch)
 
 	for r := 0; r < c.WorkerCount; r++ {
 		if c.Channel != nil {
 			go NewWorker(c, r)
 		} else {
-			log.Fatal("couldn't launch workers")
+			log.Fatal("Couldn't launch workers")
 		}
 	}
 
-	log.Printf(" [*] Started %d workers. Waiting for messages. To exit press CTRL+C", c.WorkerCount)
+	log.Printf("Started %d workers. Waiting for messages. To exit press CTRL+C", c.WorkerCount)
 	forever := make(chan struct{})
 	<-forever
 }
@@ -171,15 +165,15 @@ func NewWorker(c *models.Consumer, id int) {
 			}
 			log.Printf("Worker %d Received a message (Attempt %d)", id, headerRetryCount)
 
-			var notif models.NotifPushRequest
-			err := json.Unmarshal(d.Body, &notif)
+			var notifMessageRequest models.NotifMessageRequest
+			err := json.Unmarshal(d.Body, &notifMessageRequest)
 			if err != nil {
 				log.Printf("Worker %d FAILED to unmarshal JSON: %v. Sending to DLX.", id, err)
 				d.Nack(false, false)
 				continue
 			}
 
-			err = sendNotification.SendNotification(context.Background(), c, notif)
+			err = sendNotification.SendNotification(context.Background(), c, notifMessageRequest)
 			if err != nil {
 				log.Printf("Worker failed: %v", err)
 				if headerRetryCount < models.MaxRetries {
@@ -234,12 +228,12 @@ func setUpFirebaseClient(c *models.Consumer) {
 
 	app, err := firebase.NewApp(ctx, &config, opt)
 	if err != nil {
-		log.Fatalf("error initializing app: %v\n", err)
+		log.Fatalf("Error initializing app: %v\n", err)
 	}
 
 	client, err := app.Messaging(ctx)
 	if err != nil {
-		log.Fatalf("error getting Messaging client: %v\n", err)
+		log.Fatalf("Error getting Messaging client: %v\n", err)
 	}
 	c.Client = client
 }

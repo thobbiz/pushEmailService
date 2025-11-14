@@ -59,7 +59,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.NotifPushRequest"
+                            "$ref": "#/definitions/models.NotifMessageRequest"
                         }
                     }
                 ],
@@ -117,72 +117,21 @@
                 }
             }
         },
-        "models.NotifPushRequest": {
+        "models.NotifMessageRequest": {
             "type": "object",
             "properties": {
-                "notification_type": {
-                    "description": "The type of notification to send",
-                    "enum": [
-                        "push",
-                        "email"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.NotificationType"
-                        }
-                    ],
-                    "example": "push"
+                "body": {
+                    "type": "string"
                 },
-                "request_id": {
-                    "description": "A unique ID for tracking this request",
-                    "type": "string",
-                    "example": "req_abc123"
+                "push_token": {
+                    "type": "string"
                 },
-                "template_code": {
-                    "description": "The code/ID of the template to use",
-                    "type": "string",
-                    "example": "welcome_template"
+                "title": {
+                    "type": "string"
                 },
                 "user_id": {
-                    "description": "The unique identifier for the user",
                     "type": "string",
                     "example": "user1ab2c"
-                },
-                "variables": {
-                    "description": "The dynamic data to inject into the template",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/models.UserData"
-                        }
-                    ]
-                }
-            }
-        },
-        "models.NotificationType": {
-            "type": "string",
-            "enum": [
-                "email",
-                "push"
-            ],
-            "x-enum-varnames": [
-                "Email",
-                "Push"
-            ]
-        },
-        "models.UserData": {
-            "type": "object",
-            "properties": {
-                "link": {
-                    "description": "A relevant URL for the notification (e.g., verification link)",
-                    "type": "string"
-                },
-                "meta": {
-                    "description": "Extra metadata for template substitution",
-                    "type": "object"
-                },
-                "name": {
-                    "description": "User's full name",
-                    "type": "string"
                 }
             }
         }

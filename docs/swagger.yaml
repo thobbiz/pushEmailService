@@ -14,51 +14,16 @@ definitions:
         description: Total messages successfully processed
         type: integer
     type: object
-  models.NotifPushRequest:
+  models.NotifMessageRequest:
     properties:
-      notification_type:
-        allOf:
-        - $ref: '#/definitions/models.NotificationType'
-        description: The type of notification to send
-        enum:
-        - push
-        - email
-        example: push
-      request_id:
-        description: A unique ID for tracking this request
-        example: req_abc123
+      body:
         type: string
-      template_code:
-        description: The code/ID of the template to use
-        example: welcome_template
+      push_token:
+        type: string
+      title:
         type: string
       user_id:
-        description: The unique identifier for the user
         example: user1ab2c
-        type: string
-      variables:
-        allOf:
-        - $ref: '#/definitions/models.UserData'
-        description: The dynamic data to inject into the template
-    type: object
-  models.NotificationType:
-    enum:
-    - email
-    - push
-    type: string
-    x-enum-varnames:
-    - Email
-    - Push
-  models.UserData:
-    properties:
-      link:
-        description: A relevant URL for the notification (e.g., verification link)
-        type: string
-      meta:
-        description: Extra metadata for template substitution
-        type: object
-      name:
-        description: User's full name
         type: string
     type: object
 info:
@@ -101,7 +66,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/models.NotifPushRequest'
+          $ref: '#/definitions/models.NotifMessageRequest'
       produces:
       - application/json
       responses:
