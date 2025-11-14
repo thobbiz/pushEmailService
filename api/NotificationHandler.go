@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"push_service/models"
@@ -73,7 +74,7 @@ func NotificationHandler(p *models.Publisher, ctx *gin.Context) {
 func FetchUser(userId string) (*models.User, error) {
 	API_NAME := "https://user-service-yci9.onrender.com/api"
 	url := fmt.Sprintf("%s/v1/users/%s", API_NAME, userId)
-	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MWVhN2YzOS04YTU2LTRkZTYtOTAzMy04MDI5ODRhYzhkZmMiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwicm9sZSI6InVzZXIiLCJ0eXBlIjoiYWNjZXNzIiwiaWF0IjoxNzYzMTI3NTgzLCJleHAiOjE3NjMxMzExODN9.CLvnEoZN5gzTdZ3YZIs1YUZrWRWxzVbCIb01Cn4RdYE"
+	token := os.Getenv("LOGIN_USER_TOKEN")
 
 	client := &http.Client{
 		Timeout: 40 * time.Second,

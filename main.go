@@ -20,7 +20,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title           Push Email MicroService
+// @title           Push Notification MicroService
 // @version         1.0
 // @description     A microservice that pushes notification to the designated web user
 // @termsOfService  http://swagger.io/terms/
